@@ -139,13 +139,140 @@ This avoids unintended burst damage while keeping combat readable.
 
 ---
 
-## Design Rationale
+## Weapon System
 
-* **Direct input → animation → gameplay loop** minimizes latency
-* Modular scripts allow easy tuning of damage, cooldowns, and speed
-* Systems are intentionally lightweight to maintain VR performance
+### Modular Weapon Architecture
 
-Together, these systems enable **responsive hand-driven combat**, reinforcing immersion while remaining scalable for future mechanics.
+The game implements a **modular weapon system** designed to support multiple firearms with distinct behaviors, stats, and UI bindings.
+
+Each weapon encapsulates:
+
+* Fire rate
+* Damage per hit
+* Magazine size
+* Reload time
+* Projectile behavior (hitscan vs physical projectile)
+
+Weapons are treated as **data-driven entities**, allowing easy addition or balancing without rewriting combat logic.
+
+---
+
+### Ammo & Inventory Management
+
+Ammo is managed through a **centralized inventory system** rather than per-weapon isolation.
+
+**Core mechanics**
+
+* Each weapon pulls ammo from a shared inventory pool
+* Magazine ammo and reserve ammo are tracked separately
+* Inventory values update UI in real time
+
+This allows:
+
+* Weapon switching without ammo duplication
+* Global ammo rewards or penalties
+* Future expansion into pickups, upgrades, or economy systems
+
+---
+
+### Advanced Reloading Logic
+
+Reloading is implemented as a **stateful process**, not a simple ammo refill.
+
+**Reload pipeline**
+
+1. Reload input detected
+2. Reload state entered (weapon disabled)
+3. Reload animation / delay plays
+4. Ammo transferred from inventory → magazine
+5. Weapon re-enabled
+
+**Key constraints**
+
+* Reload is blocked if inventory ammo is insufficient
+* Reload cannot be interrupted by firing
+* Prevents reload spamming via cooldown/state lock
+
+This mirrors real-world firearm logic while maintaining gameplay balance.
+
+---
+
+## User Interface (UI) System
+
+### In-Game Combat UI
+
+The game features a **diegetic-style HUD** optimized for VR readability and minimal obstruction.
+
+Displayed information includes:
+
+* Current wave number
+* Active weapon name
+* Magazine ammo / reserve ammo
+* Weapon damage stats
+* Player health bar
+
+UI elements are positioned to remain **within the player’s natural field of view** without requiring head tilting or excessive eye movement.
+
+---
+
+### Weapon Comparison UI
+
+When multiple weapons are available, the UI supports **side-by-side weapon stat visualization**, allowing players to make quick tactical decisions.
+
+Shown attributes include:
+
+* Ammo capacity
+* Damage per shot
+* Inventory availability
+
+This reinforces **skill-based decision making** rather than hidden stats.
+
+---
+
+### UI Design Considerations for VR
+
+* Large, high-contrast typography for readability
+* Minimal animation to avoid motion discomfort
+* Transparent backgrounds to preserve environmental awareness
+* UI updates are event-driven (not per-frame polling)
+
+This ensures comfort during extended VR sessions.
+
+---
+
+## Death & Leaderboard System
+
+### Player Death Handling
+
+On player death:
+
+* Input is disabled
+* Active combat systems are halted
+* Enemy AI is frozen or despawned
+* A results overlay is triggered
+
+This cleanly transitions the experience from **active gameplay to post-run evaluation**.
+
+---
+
+### Leaderboard System
+
+The game includes a **session-based leaderboard** displayed immediately after player death.
+
+Tracked metrics include:
+
+* Highest wave reached
+* Total enemies eliminated
+* Survival duration
+
+The leaderboard provides:
+
+* Immediate performance feedback
+* Replay motivation
+* Competitive comparison during exhibitions
+
+This was especially effective in the **Srishti IITR showcase setting**, encouraging repeated attempts by visitors.
+
 
 ## AI System
 
@@ -279,13 +406,3 @@ This ensures **clean teardown** without leaving active AI logic behind.
 * Defensive checks prevent logic execution after death.
 * Coroutines and invokes are isolated to avoid race conditions.
 
----
-
-If you want, next we can:
-
-* Add a **“System Diagram” section**
-* Write a **Performance / Optimization Notes** section
-* Clean this into a **GitHub-polished README tone**
-* Or document **animation + asset pipeline** (FBX → Animator → AI)
-
-Say the word and which section comes next.
